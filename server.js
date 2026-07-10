@@ -10,13 +10,10 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-// ضع مفتاحًا سريًا خاصًا بك
-const SECRET_KEY = "CHANGE_ME_TO_A_LONG_RANDOM_STRING";
-
 // CORS
 app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "Range, Content-Type");
+    res.setHeader("Access-Control-Allow-Headers", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
 
     if (req.method === "OPTIONS") {
@@ -26,19 +23,13 @@ app.use((req, res, next) => {
     next();
 });
 
-// الصفحة الرئيسية
 app.get("/", (req, res) => {
     res.send("HRK Proxy is running ✅");
 });
 
-// البروكسي
 app.get("/proxy", async (req, res) => {
 
-    const { url, key } = req.query;
-
-    if (key !== SECRET_KEY) {
-        return res.status(403).send("Forbidden");
-    }
+    const { url } = req.query;
 
     if (!url) {
         return res.status(400).send("Missing url");
@@ -49,12 +40,10 @@ app.get("/proxy", async (req, res) => {
         const headers = {};
 
         if (req.headers.range) {
-            headers["Range"] = req.headers.range;
+            headers.Range = req.headers.range;
         }
 
-        const upstream = await fetch(url, {
-            headers
-        });
+        const upstream = await fetch(url, { headers });
 
         if (!upstream.ok && upstream.status !== 206) {
             return res.status(upstream.status).send("Upstream Error");
@@ -69,10 +58,10 @@ app.get("/proxy", async (req, res) => {
 
         if (isPlaylist) {
 
-            const text = await upstream.text();
+            const playlist = await upstream.text();
 
             const rewritten = rewritePlaylist(
-                text,
+                playlist,
                 url,
                 req
             );
@@ -90,12 +79,12 @@ app.get("/proxy", async (req, res) => {
             "content-length",
             "content-range",
             "accept-ranges"
-        ].forEach(h => {
+        ].forEach(name => {
 
-            const v = upstream.headers.get(h);
+            const value = upstream.headers.get(name);
 
-            if (v) {
-                res.setHeader(h, v);
+            if (value) {
+                res.setHeader(name, value);
             }
 
         });
@@ -104,11 +93,11 @@ app.get("/proxy", async (req, res) => {
 
         Readable.fromWeb(upstream.body).pipe(res);
 
-    } catch (e) {
+    } catch (err) {
 
-        console.error(e);
+        console.error(err);
 
-        res.status(500).send(e.message);
+        res.status(500).send(err.message);
 
     }
 
@@ -120,8 +109,6 @@ function rewritePlaylist(text, baseUrl, req) {
 
     const proxyBase =
         ${req.protocol}://${req.get("host")}/proxy;
-
-    const key = req.query.key;
 
     return text
         .split("\n")
@@ -141,7 +128,7 @@ function rewritePlaylist(text, baseUrl, req) {
                         new URL(match[1], base).href;
 
                     const proxy =
-                        ${proxyBase}?key=${encodeURIComponent(key)}&url=${encodeURIComponent(absolute)};
+                        ${proxyBase}?url=${encodeURIComponent(absolute)};
 
                     return line.replace(match[1], proxy);
                 }
@@ -152,7 +139,7 @@ function rewritePlaylist(text, baseUrl, req) {
             const absolute =
                 new URL(t, base).href;
 
-            return ${proxyBase}?key=${encodeURIComponent(key)}&url=${encodeURIComponent(absolute)};
+            return ${proxyBase}?url=${encodeURIComponent(absolute)};
 
         })
         .join("\n");
@@ -160,5 +147,7 @@ function rewritePlaylist(text, baseUrl, req) {
 }
 
 app.listen(PORT, () => {
+
     console.log(HRK Proxy listening on port ${PORT});
+
 });
