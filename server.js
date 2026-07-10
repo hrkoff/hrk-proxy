@@ -107,7 +107,7 @@ function rewritePlaylist(text, baseUrl, req) {
 
     const base = new URL(baseUrl);
 
-    const proxyBase = ${req.protocol}://${req.get("host")}/proxy;
+    const proxyBase = `${req.protocol}://${req.get("host")}/proxy`;
 
     return text
         .split("\n")
@@ -127,7 +127,7 @@ function rewritePlaylist(text, baseUrl, req) {
                         new URL(match[1], base).href;
 
                     const proxy =
-                        ${proxyBase}?url=${encodeURIComponent(absolute)};
+                        `${proxyBase}?url=${encodeURIComponent(absolute)}`;
 
                     return line.replace(match[1], proxy);
                 }
@@ -138,7 +138,7 @@ function rewritePlaylist(text, baseUrl, req) {
             const absolute =
                 new URL(t, base).href;
 
-            return ${proxyBase}?url=${encodeURIComponent(absolute)};
+            return `${proxyBase}?url=${encodeURIComponent(absolute)}`;
 
         })
         .join("\n");
@@ -147,6 +147,6 @@ function rewritePlaylist(text, baseUrl, req) {
 
 app.listen(PORT, () => {
 
-    console.log(HRK Proxy listening on port ${PORT});
+    console.log(`HRK Proxy listening on port ${PORT}`);
 
 });
