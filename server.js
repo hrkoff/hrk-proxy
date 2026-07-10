@@ -107,8 +107,7 @@ function rewritePlaylist(text, baseUrl, req) {
 
     const base = new URL(baseUrl);
 
-    const proxyBase =
-        ${req.protocol}://${req.get("host")}/proxy;
+    const proxyBase = ${req.protocol}://${req.get("host")}/proxy;
 
     return text
         .split("\n")
