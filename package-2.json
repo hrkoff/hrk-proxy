@@ -1,0 +1,15 @@
+{
+  "name": "hrk-stream-proxy",
+  "version": "1.0.0",
+  "description": "HTTP to HTTPS proxy for TS/HLS video streams to fix Mixed Content in WebView apps",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
